@@ -34,7 +34,7 @@ struct rect {
     int h;
 };
 
-struct framebuffer init_framebuffer(int w, int h, char* path, struct font* font);
+struct framebuffer framebuffer_init(int w, int h, char* path, struct font* font);
 void framebuffer_draw(struct framebuffer *fb);
 int framebuffer_index(struct framebuffer *fb, int x, int y);
 void framebuffer_set_pixel(struct framebuffer *fb, int x, int y, short color);

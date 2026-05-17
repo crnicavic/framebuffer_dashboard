@@ -12,7 +12,7 @@ struct font default_font = {
     .data = console_font_12x16
 };
 
-struct framebuffer init_framebuffer(int w, int h, char* path, struct font* font)
+struct framebuffer framebuffer_init(int w, int h, char* path, struct font* font)
 {
     struct framebuffer fb;
     fb.w = w;

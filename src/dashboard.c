@@ -4,7 +4,7 @@
 
 struct dashboard init_dashboard(struct screen_params *p)
 {
-    struct framebuffer fb = init_framebuffer(p->pixels_w, p->pixels_h, p->framebuffer_path, NULL);
+    struct framebuffer fb = framebuffer_init(p->pixels_w, p->pixels_h, p->framebuffer_path, NULL);
     struct dashboard dash = {
     .screen_params = p,
     .ts = ts_setup(p->touchscreen_path, 1),

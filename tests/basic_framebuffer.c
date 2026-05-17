@@ -4,7 +4,7 @@
 
 int main(void)
 {
-    struct framebuffer fb = init_framebuffer(320, 480);
+    struct framebuffer fb = framebuffer_init(320, 480);
     struct font font;
     font.glyph_w = 12;
     font.glyph_h = 16;
