@@ -38,10 +38,10 @@ struct framebuffer framebuffer_init(int w, int h, char* path, struct font* font)
 void framebuffer_draw(struct framebuffer *fb);
 int framebuffer_index(struct framebuffer *fb, int x, int y);
 void framebuffer_set_pixel(struct framebuffer *fb, int x, int y, short color);
-void render_rect(struct framebuffer *fb, struct rect *rect, short color);
+void framebuffer_render_rect(struct framebuffer *fb, struct rect *rect, short color);
 void framebuffer_clear(struct framebuffer *fb, short color);
 char* get_glyph(struct font* font, char c);
-void render_char(struct framebuffer *fb, char c, int x0, int y0, short color);
-void render_string(struct framebuffer *fb, char *str, int x0, int y0, short color);
+void framebuffer_render_char(struct framebuffer *fb, char c, int x0, int y0, short color);
+void framebuffer_render_string(struct framebuffer *fb, char *str, int x0, int y0, short color);
 void framebuffer_destroy(struct framebuffer *fb);
 #endif

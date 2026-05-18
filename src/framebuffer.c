@@ -22,6 +22,10 @@ struct framebuffer framebuffer_init(int w, int h, char* path, struct font* font)
     } else {
         fb.file = fopen(path, "wb");
     }
+    if (fb.file == NULL) {
+        printf("Opening framebuffer %s failed!\n", path);
+    }
+
     if (font == NULL) {
         fb.font = &default_font;
     } else {
@@ -67,7 +71,7 @@ static int min(int a, int b)
     return a < b ? a : b;
 }
 
-void render_rect(struct framebuffer *fb, struct rect *rect, short color)
+void framebuffer_render_rect(struct framebuffer *fb, struct rect *rect, short color)
 {
     // if by some chance the coordinates are negative, correct them
     int start_x = max(0, rect->x);
@@ -103,7 +107,7 @@ char* get_glyph(struct font* font, char c)
     return &font->data[glyph_index];
 }
 
-void render_char(struct framebuffer *fb, char c, int x0, int y0, short color)
+void framebuffer_render_char(struct framebuffer *fb, char c, int x0, int y0, short color)
 {
 
     char *glyph = get_glyph(fb->font, c);
@@ -120,12 +124,12 @@ void render_char(struct framebuffer *fb, char c, int x0, int y0, short color)
     }
 }
 
-void render_string(struct framebuffer *fb, char *str, int x0, int y0, short color)
+void framebuffer_render_string(struct framebuffer *fb, char *str, int x0, int y0, short color)
 {
     int x = x0;
     int y = y0;
     while(*str) {
-        render_char(fb, *str, x, y, color);
+        framebuffer_render_char(fb, *str, x, y, color);
         x += fb->font->glyph_w;
         str++;
     }
@@ -133,5 +137,6 @@ void render_string(struct framebuffer *fb, char *str, int x0, int y0, short colo
 
 void framebuffer_destroy(struct framebuffer *fb)
 {
+    fclose(fb->file);
     free(fb->pixels);
 }

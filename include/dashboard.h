@@ -3,22 +3,43 @@
 
 #include "framebuffer.h"
 #include <tslib.h>
-#define DASHBOARD_MAX_BUTTONS 16
+#define DASHBOARD_MAX_ELEMENTS 16
 
-enum button_state {
-NOT_PRESSED = 0,
-PRESSED = 1
+struct dashboard_element {
+    int visible;
+    int touchable;
+    struct rect box;
+    void (*framebuffer_render)(struct framebuffer *, struct dashboard_element *);
+    void (*touch)(struct dashboard_element *, struct rect *);
+    void (*touch_callback)(struct dashboard_element *);
+    void (*update_state)(struct dashboard_element *); //  used for buttons
+    void *element_data; // the pointer to the element itself    void *userdata; // whatever is needed
+    void *user_data;
+    int touched; // has the element been touched in the current poll (user doesnt need to set this)
+    int dirty;   // does the element have to rerendered (user doesnt need to check set this)
 };
 
 struct button {
-    struct rect rect;
     short color;
     short press_color;
     short text_color;
     char *text;
-    int state;
-    void (*callback)(void *);
-    void* arg;   // currently support only one argument
+};
+
+struct label{
+    char *text;
+    short color;
+};
+
+enum indicator_state {
+    INDICATOR_OFF = 0,
+    INDICATOR_ON
+};
+
+struct indicator {
+    short on_color;
+    short off_color;
+    enum indicator_state state;
 };
 
 struct screen_params {
@@ -38,23 +59,27 @@ struct screen_params {
 
 struct dashboard {
     struct screen_params *screen_params;
-    struct framebuffer *fb;
+    struct framebuffer fb;
     struct tsdev *ts;
-    struct button **buttons; //array of button pointers
-    int button_count;
+    struct dashboard_element *elements[DASHBOARD_MAX_ELEMENTS];
+    int element_count;
 };
 
 struct dashboard init_dashboard(struct screen_params *p);
-void dashboard_add_button(struct dashboard *dash,
-                          struct button *button);
-void update_dashboard_state(struct dashboard *dash);
+void dashboard_add_element(struct dashboard *dash,
+                           struct dashboard_element *element);
+void dashboard_touch_update(struct dashboard *dash);
+void dashboard_render_elements(struct dashboard *dash);
 struct rect convert_touch_to_pixel(struct ts_sample *samp,
                                    struct screen_params *p);
-void render_button(struct framebuffer *fb,
-                   struct button *button);
 int rect_collision(struct rect *a, struct rect *b);
-void update_button_state(struct button *button,
-                         struct dashboard *dash,
-                         struct rect *touch_rect);
-void destroy_dashboard(struct dashboard *dash);
+void dashboard_is_element_touched(struct dashboard_element *element,
+                                  struct rect *touch_area);
+void framebuffer_render_button(struct framebuffer *fb,
+                               struct dashboard_element *element);
+void framebuffer_render_label(struct framebuffer *fb,
+                              struct dashboard_element *element);
+void framebuffer_render_indicator(struct framebuffer *fb,
+                                  struct dashboard_element *element);
+void dashboard_destroy(struct dashboard *dash);
 #endif

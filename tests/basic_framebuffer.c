@@ -10,9 +10,9 @@ int main(void)
     font.glyph_h = 16;
     font.data = console_font_12x16;
     clear_fb(&fb, PINK);
-    render_char(&fb, 'a', 100, 100, &font);
+    framebuffer_render_char(&fb, 'a', 100, 100, &font);
     char str[] = "kurac";
-    render_string(&fb, str, 200, 200, &font);
+    framebuffer_render_string(&fb, str, 200, 200, &font);
 
     FILE *fb_file = fopen("/dev/fb1", "wb");
     fwrite(fb.pixels, sizeof(short), fb.w * fb.h, fb_file);
