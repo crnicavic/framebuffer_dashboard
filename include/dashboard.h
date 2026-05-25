@@ -13,10 +13,10 @@ struct dashboard_element {
     void (*touch)(struct dashboard_element *, struct rect *);
     void (*touch_callback)(struct dashboard_element *);
     void (*update_state)(struct dashboard_element *); //  used for buttons
-    void *element_data; // the pointer to the element itself    void *userdata; // whatever is needed
+    void *element_data; // the pointer to the element itself
     void *user_data;
+    int dirty;
     int touched; // has the element been touched in the current poll (user doesnt need to set this)
-    int dirty;   // does the element have to rerendered (user doesnt need to check set this)
 };
 
 struct button {
@@ -61,7 +61,7 @@ struct dashboard {
     struct screen_params *screen_params;
     struct framebuffer fb;
     struct tsdev *ts;
-    struct dashboard_element *elements[DASHBOARD_MAX_ELEMENTS];
+    struct dashboard_element elements[DASHBOARD_MAX_ELEMENTS];
     int element_count;
 };
 
@@ -81,5 +81,6 @@ void framebuffer_render_label(struct framebuffer *fb,
                               struct dashboard_element *element);
 void framebuffer_render_indicator(struct framebuffer *fb,
                                   struct dashboard_element *element);
+void dashboard_update_state(struct dashboard *dash);
 void dashboard_destroy(struct dashboard *dash);
 #endif
