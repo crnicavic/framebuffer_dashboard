@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <tslib.h>
 #include <string.h>
 #include "framebuffer.h"
 
