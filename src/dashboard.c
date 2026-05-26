@@ -23,7 +23,9 @@ struct dashboard init_dashboard(struct screen_params *p)
 void dashboard_add_element(struct dashboard *dash,
                            struct dashboard_element *element)
 {
-    element->dirty = 1;
+    // always make it dirty so that it gets rendered initially!
+    // later on the state will be updated
+    element->dirty = element->visible;
     if (dash->element_count >= DASHBOARD_MAX_ELEMENTS) {
         return;
     }
@@ -39,10 +41,25 @@ static int clip(int x, int lo, int hi)
 struct rect convert_touch_to_pixel(struct ts_sample *samp,
                                    struct screen_params *p)
 {
+    /*
+    ** The display registers touch events as a value that doesn't
+    ** directly map to pixels, instead it's some raw value
+    **
+    ** For my use case it ranges from 200 to 4000 for both axes.
+    **
+    ** So in order to map that to pixels i just fit a line
+    ** between the points of (200, 0) and (4000, w/h). where w/h
+    ** is the width/height of the axis in pixels.
+    **
+    ** Also this raw value ignores the rotation parameter set in the driver,
+    ** so i have to introduce parameters that does it for me, and
+    ** that results in two slightly different equations
+     */
     struct rect touch_rect;
     // clip both inputs because the display is crap
     samp->x = clip(samp->x, p->touch_xmin, p->touch_xmax);
     samp->y = clip(samp->y, p->touch_ymin, p->touch_ymax);
+
     touch_rect.x = p->pixels_w * (samp->x - p->touch_xmin) / (p->touch_xmax - p->touch_xmin);
     touch_rect.x = p->touch_invert_x ? -touch_rect.x : touch_rect.x;
     touch_rect.x += (p->touch_invert_x ? p->pixels_w : 0) - p->touch_w / 2;
@@ -72,6 +89,9 @@ void dashboard_is_element_touched(struct dashboard_element *element,
 }
 
 void dashboard_touch_update(struct dashboard *dash) {
+    // NOTE: reading the touch device too fast results in there being
+    // no touch event, so patching that should be done here or by making
+    // smarter callbacks
     struct ts_sample samp;
     int ret = ts_read(dash->ts, &samp, 1);
     if (ret > 0) {
@@ -108,6 +128,7 @@ void framebuffer_render_button(struct framebuffer *fb,
     short color = element->touched ? button->press_color : button->color;
     framebuffer_render_rect(fb, &element->box, color);
     int len = strlen(button->text);
+    // center text within rect
     int x = element->box.x + element->box.w / 2 - len * fb->font->glyph_w / 2;
     int y = element->box.y + element->box.h / 2 - fb->font->glyph_h / 2;
     framebuffer_render_string(fb, button->text, x, y, button->text_color);

@@ -39,6 +39,7 @@ struct framebuffer framebuffer_init(int w, int h, char* path, struct font* font)
 }
 
 void framebuffer_draw(struct framebuffer *fb) {
+    // movo to start of file
     fseek(fb->file, 0, SEEK_SET);
     fwrite(fb->pixels, sizeof(short), fb->w * fb->h, fb->file);
     fflush(fb->file);
@@ -50,6 +51,7 @@ int framebuffer_index(struct framebuffer *fb, int x, int y)
     if (index < 0 || index >= (fb->w * fb->h)) {
         printf("WARNING: index %d out of range %d\n", index, (fb->w * fb->h));
     }
+    // check if index is out of bounds
     index = index < 0 ? 0 : index >= (fb->w * fb->h) ? (fb->w * fb->h - 1) : index;
     return index;
 }
@@ -72,7 +74,8 @@ static int min(int a, int b)
 
 void framebuffer_render_rect(struct framebuffer *fb, struct rect *rect, short color)
 {
-    // if by some chance the coordinates are negative, correct them
+    // only render the part of the rect that will be visible
+    // by checking how much of the rect is within the framebuffer
     int start_x = max(0, rect->x);
     int start_y = max(0, rect->y);
     int end_x = min(rect->x + rect->w, fb->w);
@@ -108,7 +111,8 @@ char* get_glyph(struct font* font, char c)
 
 void framebuffer_render_char(struct framebuffer *fb, char c, int x0, int y0, short color)
 {
-
+    // the shape of a glyph is just 0 and 1, when 1 set the pixel,
+    // if the value is 0, do not set the pixel, very simple
     char *glyph = get_glyph(fb->font, c);
     for (int y = y0; y < (y0 + fb->font->glyph_h); y++) {
         int glyph_row = *glyph << 4 | (*(glyph+1) >> 4);
