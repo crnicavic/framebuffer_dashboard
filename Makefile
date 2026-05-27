@@ -12,7 +12,10 @@ FB_DEPS=$(filter-out $(ODIR)/dashboard.o, $(OBJ))
 LIBS=-lts
 INCLUDE=-I$(IDIR)
 
-all: $(OBJ)
+all: obj $(OBJ)
+
+$(ODIR):
+	mkdir $(ODIR)
 
 $(ODIR)/%.o: $(SDIR)/%.c $(IDIR)/%.h
 	$(CC) -c -fPIC $< -o $@ $(INCLUDE)
