@@ -18,4 +18,4 @@ Bare bones examples are inside of the `tests/` directory, and should be sufficie
 
 The library does almost everything i need it to, but there are a few things that might need to be worked out:
  - [ ] Touch debouncing - Reading the touch event device too fast results in ts_read reading nothing, which is detected as there being no touch
- - [x] Heap allocation - currently all of the elements are on the stack, and that forces me to use some hacky ways to extend lifetimes of variables
+ - [ ] Heap allocation - currently all of the elements are on the stack, and that forces me to use some hacky ways to extend lifetimes of variables
