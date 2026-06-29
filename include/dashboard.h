@@ -5,20 +5,6 @@
 #include <tslib.h>
 #define DASHBOARD_MAX_ELEMENTS 16
 
-struct dashboard_element {
-    int visible;
-    int touchable;
-    struct rect box;
-    void (*framebuffer_render)(struct framebuffer *, struct dashboard_element *);
-    void (*touch)(struct dashboard_element *, struct rect *);
-    void (*touch_callback)(struct dashboard_element *);
-    void (*update_state)(struct dashboard_element *); //  used for buttons
-    void *element_data; // the pointer to the element itself
-    void *user_data;
-    int dirty;
-    int touched; // has the element been touched in the current poll (user doesnt need to set this)
-};
-
 struct button {
     short color;
     short press_color;
@@ -40,6 +26,25 @@ struct indicator {
     short on_color;
     short off_color;
     enum indicator_state state;
+};
+
+struct touch_event {
+    struct rect touch_area;
+    int pressure;
+};
+
+struct dashboard_element {
+    int visible;
+    int touchable;
+    struct rect box;
+    void (*framebuffer_render)(struct framebuffer *, struct dashboard_element *);
+    void (*touch)(struct dashboard_element *, struct touch_event *);
+    void (*touch_callback)(struct dashboard_element *);
+    void (*update_state)(struct dashboard_element *); //  used for buttons
+    void *element_data; // the pointer to the element itself
+    void *user_data;
+    int dirty;
+    int touched; // has the element been touched in the current poll (user doesnt need to set this)
 };
 
 struct screen_params {
@@ -74,7 +79,7 @@ struct rect convert_touch_to_pixel(struct ts_sample *samp,
                                    struct screen_params *p);
 int rect_collision(struct rect *a, struct rect *b);
 void dashboard_is_element_touched(struct dashboard_element *element,
-                                  struct rect *touch_area);
+                                  struct touch_event *t);
 void framebuffer_render_button(struct framebuffer *fb,
                                struct dashboard_element *element);
 void framebuffer_render_label(struct framebuffer *fb,

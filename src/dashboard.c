@@ -38,8 +38,8 @@ static int clip(int x, int lo, int hi)
     return x < lo ? lo : x > hi ? hi : x;
 }
 
-struct rect convert_touch_to_pixel(struct ts_sample *samp,
-                                   struct screen_params *p)
+struct touch_event process_touch(struct ts_sample *samp,
+                                 struct screen_params *p)
 {
     /*
     ** The display registers touch events as a value that doesn't
@@ -55,22 +55,23 @@ struct rect convert_touch_to_pixel(struct ts_sample *samp,
     ** so i have to introduce parameters that does it for me, and
     ** that results in two slightly different equations
      */
-    struct rect touch_rect;
+    struct touch_event t;
+    t.pressure = samp->pressure;
     // clip both inputs because the display is crap
     samp->x = clip(samp->x, p->touch_xmin, p->touch_xmax);
     samp->y = clip(samp->y, p->touch_ymin, p->touch_ymax);
 
-    touch_rect.x = p->pixels_w * (samp->x - p->touch_xmin) / (p->touch_xmax - p->touch_xmin);
-    touch_rect.x = p->touch_invert_x ? -touch_rect.x : touch_rect.x;
-    touch_rect.x += (p->touch_invert_x ? p->pixels_w : 0) - p->touch_w / 2;
+    t.touch_area.x = p->pixels_w * (samp->x - p->touch_xmin) / (p->touch_xmax - p->touch_xmin);
+    t.touch_area.x = p->touch_invert_x ? -t.touch_area.x : t.touch_area.x;
+    t.touch_area.x += (p->touch_invert_x ? p->pixels_w : 0) - p->touch_w / 2;
 
-    touch_rect.y = p->pixels_h * (samp->y - p->touch_ymin) / (p->touch_ymax - p->touch_ymin);
-    touch_rect.y = p->touch_invert_y ? -touch_rect.y : touch_rect.y;
-    touch_rect.y += (p->touch_invert_y ? p->pixels_h : 0) - p->touch_h / 2;
+    t.touch_area.y = p->pixels_h * (samp->y - p->touch_ymin) / (p->touch_ymax - p->touch_ymin);
+    t.touch_area.y = p->touch_invert_y ? -t.touch_area.y : t.touch_area.y;
+    t.touch_area.y += (p->touch_invert_y ? p->pixels_h : 0) - p->touch_h / 2;
 
-    touch_rect.w = p->touch_w;
-    touch_rect.h = p->touch_h;
-    return touch_rect;
+    t.touch_area.w = p->touch_w;
+    t.touch_area.h = p->touch_h;
+    return t;
 }
 
 int rect_collision(struct rect *a, struct rect *b)
@@ -82,10 +83,10 @@ int rect_collision(struct rect *a, struct rect *b)
 }
 
 void dashboard_is_element_touched(struct dashboard_element *element,
-                                  struct rect *touch_area)
+                                  struct touch_event *t)
 {
     if (!element->touchable) return;
-    element->touched = rect_collision(&element->box, touch_area);
+    element->touched = rect_collision(&element->box, &t->touch_area);
 }
 
 void dashboard_touch_update(struct dashboard *dash) {
@@ -95,12 +96,12 @@ void dashboard_touch_update(struct dashboard *dash) {
     struct ts_sample samp;
     int ret = ts_read(dash->ts, &samp, 1);
     if (ret > 0) {
-        struct rect touch_area = convert_touch_to_pixel(&samp, dash->screen_params);
+        struct touch_event t = process_touch(&samp, dash->screen_params);
         for (int e = 0; e < dash->element_count; e++) {
             struct dashboard_element *element = &dash->elements[e];
             int prev_state = element->touched;
             if (element->touchable) {
-                element->touch(element, &touch_area);
+                element->touch(element, &t);
             }
             if (element->touch_callback &&
                 element->touched &&

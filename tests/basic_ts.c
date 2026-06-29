@@ -11,7 +11,7 @@ int main() {
     while (1) {
         int ret = ts_read(ts, &samp, 1);
         if (ret > 0) {
-            printf("Touch at %d,%d\n", samp.x, samp.y);
+            printf("Touch at %d,%d,%d\n", samp.x, samp.y, samp.pressure);
         }
 
         usleep(16000); // ~60 FPS
